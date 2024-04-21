@@ -30,9 +30,11 @@ def create_sequences(data, sequence_length, num_features, close_idx):
      
     X, y = [], []
     for i in range(len(data) - sequence_length):
+        #print(data.iloc[i:(i + sequence_length), :num_features]) <- to debug X, before normalizaion
         X.append(data[i:(i + sequence_length), :num_features])
+        #print(data.iloc[i + sequence_length, close_idx]) <- to debug Y, before normalizaion
         y.append(data[i + sequence_length, close_idx])  # Assuming 'close' is the last column
     return np.array(X), np.array(y)
 
 
-X, y, sequence_length, num_features = load_and_preprocess_data(r'C:\Users\bohat\source\repos\AIcrypto2\Data\coin.csv')
+X, y, sequence_length, num_features = load_and_preprocess_data(r'.\Data\coin.csv')
