@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Input, Conv1D, LSTM, Bidirectional, Dense, D
 from tensorflow.keras.layers import LSTM, Dense, Bidirectional  # Import Bidirectional
 from sklearn.model_selection import train_test_split
 
-sequence_length = 5
+sequence_length = 4
 predict_column_name = "close"
 
 scaler = MinMaxScaler(feature_range=(0, 1))
@@ -24,19 +24,26 @@ def load_and_preprocess_data(csv_file):
     # Preprocess data (e.g., normalization)
 
     scaled_data = scaler.fit_transform(data.values)
-    close_idx = data.columns.get_loc(predict_column_name) 
+    #scaled_data = data.values
+    close_idx = data.columns.get_loc(predict_column_name)
 
     print("Sequence_length in day length:", sequence_length)
     print("Number of features based on Excel:",  num_features)
     print("Number of features based on scaler:",  scaled_data.shape[1])
     print("Column to predict:", close_idx)
     print("Total data points:", scaled_data.shape)
-    print("Last sequence initial shape:", scaled_data[-sequence_length:].shape)
+    print("Last sequence shape:", scaled_data[-1].shape)
+    print("Last sequence value:", scaled_data[-1])
 
     # Create sequences
     X, y = create_sequences(scaled_data, sequence_length, num_features, close_idx)
+    print("Shapes:")
+    print(X.shape)
+    print(y.shape)
+    print(X[-1])
+    print(y[-1])
 
-    return X, y, sequence_length, num_features, scaled_data 
+    return X, y, sequence_length, num_features, scaled_data
 
 def create_sequences(data, sequence_length, num_features, close_idx):
 
@@ -64,6 +71,8 @@ X, y, sequence_length, num_features, scaled_data = load_and_preprocess_data(r'.\
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+
+
 # Create the model
 #model = create_predictive_model(sequence_length, num_features)
 
@@ -79,14 +88,49 @@ model.fit(X_train, y_train, epochs=10, batch_size=256, validation_data=(X_test, 
 
 #adding new demesion as we have batch 1
 last_value_X = X[-1]
-last_value_X = last_value_X[np.newaxis, :] 
+last_value_X = last_value_X[np.newaxis, :]
+print(last_value_X)
+print(last_value_X.shape)
+#last_value_X = last_value_X[np.newaxis, :]
 
 predicted_price_tomorrow = model.predict(last_value_X)
 
+
+#print(last_value_X.shape)
+print(predicted_price_tomorrow.shape)
+
+#(last_value_X)
+print(predicted_price_tomorrow)
+
 print("Predicted unormalized price:", predicted_price_tomorrow)
+original_value = scaler.inverse_transform(predicted_price_tomorrow)
 
-#original_value = scaler.inverse_transform(predicted_price_tomorrow)
+#make 3d X to 2d
 
+array_2d = last_value_X[0]
+print(array_2d)
+
+# make 2d Y(predicted) to 1s
+
+array_1d = predicted_price_tomorrow.flatten()
+print(array_1d)
+
+# Flatten the 3D array and take the first four elements from it
+flattened_portion = last_value_X.flatten()[1:5]  # Start from index 1 to avoid the first value
+
+# Reshape it to (1,4) explicitly for clarity
+selected_values = flattened_portion.reshape(1, 4)
+
+# Concatenate the single element with the selected values from the 3D array
+final_array = np.concatenate((predicted_price_tomorrow, selected_values), axis=1)
+
+print("Final array shape:", final_array.shape)
+print("Final array contents:", final_array)
+print()
+
+original_value = scaler.inverse_transform(final_array)
+
+print("Predicted price for tomorrow (denormalized):", original_value)
 
 # #Predict tomorrow's price using the last sequence from the dataset
 # if scaled_data.shape[0] >= sequence_length:
@@ -101,15 +145,15 @@ print("Predicted unormalized price:", predicted_price_tomorrow)
 #     print("Not enough data to create a full sequence for prediction.")
 
 
-# Assuming your model predicted the scaled value of the target feature (let's say it's the last column)
-predicted_scaled_price = np.array(predicted_price_tomorrow)  # Your model's output
+# # Assuming your model predicted the scaled value of the target feature (let's say it's the last column)
+# predicted_scaled_price = np.array(predicted_price_tomorrow)  # Your model's output
 
-# Create a dummy array with the same number of features
-dummy_input = np.zeros((1, num_features))
-# Place the predicted price in the correct column (assuming the 'close' column is the last one)
-dummy_input[0, -1] = predicted_scaled_price
+# # Create a dummy array with the same number of features
+# dummy_input = np.zeros((1, num_features))
+# # Place the predicted price in the correct column (assuming the 'close' column is the last one)
+# dummy_input[0, -1] = predicted_scaled_price
 
-# Use the scaler to inverse transform the data
-predicted_price = scaler.inverse_transform(dummy_input)[0, -1]
+# # Use the scaler to inverse transform the data
+# predicted_price = scaler.inverse_transform(dummy_input)[0, -1]
 
-print("Predicted price for tomorrow (denormalized):", predicted_price)
+# print("Predicted price for tomorrow (denormalized):", predicted_price)
