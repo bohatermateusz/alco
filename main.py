@@ -24,23 +24,26 @@ def load_and_preprocess_data(csv_file):
     # Preprocess data (e.g., normalization)
 
     scaled_data = scaler.fit_transform(data.values)
-    #scaled_data = data.values
+    scaled_data = data.values
     close_idx = data.columns.get_loc(predict_column_name)
 
     print("Sequence_length in day length:", sequence_length)
     print("Number of features based on Excel:",  num_features)
     print("Number of features based on scaler:",  scaled_data.shape[1])
     print("Column to predict:", close_idx)
-    print("Total data points:", scaled_data.shape)
+    print("Scaled data shape:", scaled_data.shape) 
     print("Last sequence shape:", scaled_data[-1].shape)
     print("Last sequence value:", scaled_data[-1])
 
     # Create sequences
     X, y = create_sequences(scaled_data, sequence_length, num_features, close_idx)
-    print("Shapes:")
+    print("X Shape:")
     print(X.shape)
+    print("Y Shape:")
     print(y.shape)
+    print("X[-1] Value:")
     print(X[-1])
+    print("y[-1] Value:")
     print(y[-1])
 
     return X, y, sequence_length, num_features, scaled_data
@@ -56,11 +59,11 @@ def create_sequences(data, sequence_length, num_features, close_idx):
         y.append(data[i + sequence_length, close_idx])  #close_idx is value to be prediceted
     return np.array(X), np.array(y)
 
-def predict_new_data(new_data, model, scaler, sequence_length, num_features):
-    scaled_data = scaler.transform(new_data.reshape(1, -1))
-    X_new = create_sequences(scaled_data, sequence_length, num_features, -1)[0]  # Assuming last column is the target
-    prediction = model.predict(X_new)
-    return prediction
+# def predict_new_data(new_data, model, scaler, sequence_length, num_features):
+#     scaled_data = scaler.transform(new_data.reshape(1, -1))
+#     X_new = create_sequences(scaled_data, sequence_length, num_features, -1)[0]  # Assuming last column is the target
+#     prediction = model.predict(X_new)
+#     return prediction
 
 
 X, y, sequence_length, num_features, scaled_data = load_and_preprocess_data(r'.\Data\coin.csv')
@@ -86,6 +89,44 @@ Dense(1)
 model.compile(optimizer='adam', loss='mean_squared_error')
 model.fit(X_train, y_train, epochs=10, batch_size=256, validation_data=(X_test, y_test))
 
+
+
+# Predicting and reverse scaling
+last_sequence = X[-1].reshape(1, sequence_length, X.shape[2])
+print("NEW LAST SEQUENCE:")
+print(last_sequence)
+print("NEW LAST SEQUENCE SHAPE:")
+print(last_sequence.shape)
+predicted_price = model.predict(last_sequence).flatten()
+print("NEW LAST predicted_price:")
+print(predicted_price)
+print("NEW LAST predicted_price SHAPE:")
+print(predicted_price.shape)
+dummy_array = np.zeros((1, X.shape[2]))
+dummy_array[0, -1] = predicted_price  # Assuming the target is the last feature
+print("NEW LAST dummy_array:")
+print(dummy_array)
+print("NEW LAST dummy_array SHAPE:")
+print(dummy_array.shape)
+predicted_price_unscaled = scaler.inverse_transform(dummy_array)[0, -1]
+print("NEW LAST predicted_price_unscaled:")
+print(predicted_price_unscaled)
+print("NEW LAST predicted_price_unscaled SHAPE:")
+print(predicted_price_unscaled.shape)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #adding new demesion as we have batch 1
 last_value_X = X[-1]
 last_value_X = last_value_X[np.newaxis, :]
@@ -94,7 +135,20 @@ print(last_value_X.shape)
 #last_value_X = last_value_X[np.newaxis, :]
 
 predicted_price_tomorrow = model.predict(last_value_X)
+print(predicted_price_tomorrow)
+print(predicted_price_tomorrow.shape)
 
+    # Reshape prediction for inverse scaling
+#prediction_reshaped = predicted_price_tomorrow.reshape(-1, 1)
+    # Reverse the scaling of prediction
+
+
+
+
+
+
+original_scale_prediction = scaler.inverse_transform(predicted_price_tomorrow)
+print("Normalized prediction, reshaped: ", original_scale_prediction)
 
 #print(last_value_X.shape)
 print(predicted_price_tomorrow.shape)
