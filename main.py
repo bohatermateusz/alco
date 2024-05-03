@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Input, Conv1D, LSTM, Bidirectional, Dense, D
 from tensorflow.keras.layers import LSTM, Dense  # Import Bidirectional
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import backend as K
+from tensorflow.keras.layers import MultiHeadAttention
 from sklearn.model_selection import train_test_split
 
 
@@ -69,10 +70,14 @@ def create_predictive_model(sequence_length, num_features):
     # CNN Layers
     cnn_out = Conv1D(filters=64, kernel_size=3, activation='relu', padding='same')(input_layer)
     cnn_out = Conv1D(filters=128, kernel_size=3, activation='relu', padding='same')(cnn_out)
+
+
     
     # Bi-LSTM Layer
     bi_lstm_out = Bidirectional(LSTM(50, return_sequences=True))(cnn_out)
-    
+    ###
+    attn_out = MultiHeadAttention(num_heads=2, key_dim=50)(bi_lstm_out, bi_lstm_out)
+    ###
     # Attention Layer
     attn_layer = Attention(use_scale=True)
     attn_out = attn_layer([bi_lstm_out, bi_lstm_out])
@@ -119,7 +124,7 @@ print(model.summary())
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-model.fit(X_train, y_train, epochs=100, batch_size=5, validation_data=(X_test, y_test), callbacks=[early_stopping])
+model.fit(X_train, y_train, epochs=100, batch_size=256, validation_data=(X_test, y_test), callbacks=[early_stopping])
 
 
 # Predicting and reverse scaling
