@@ -3,7 +3,10 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import Model, Input, Conv1D, LSTM, Bidirectional, Dense, Dropout, Attention, Concatenate, LayerNormalization, Flatten, LSTM, Dense
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.layers import Input, Conv1D, LSTM, Bidirectional, Dense, Dropout, Attention, Concatenate, LayerNormalization, Flatten
+from tensorflow.keras.layers import LSTM, Dense  # Import Bidirectional
+from sklearn.model_selection import train_test_split
 
 sequence_length = 4
 predict_column_name = "close"
@@ -103,7 +106,7 @@ model = create_predictive_model(sequence_length, num_features)
 print(model.summary())
 
 
-model.fit(X_train, y_train, epochs=10, batch_size=256, validation_data=(X_test, y_test))
+model.fit(X_train, y_train, epochs=100, batch_size=256, validation_data=(X_test, y_test))
 
 
 
