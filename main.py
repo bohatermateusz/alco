@@ -3,11 +3,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import Model, Sequential, load_model
-from tensorflow.keras.layers import Input, Conv1D, LSTM, Bidirectional, Dense, Dropout, Attention, Concatenate, LayerNormalization, GlobalAveragePooling1D, Flatten
-from tensorflow.keras.layers import LSTM, Dense  # Import Bidirectional
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.layers import GlobalAveragePooling1D
+from tensorflow.keras.models import Model, Input, Conv1D, LSTM, Bidirectional, Dense, Dropout, Attention, Concatenate, LayerNormalization, Flatten, LSTM, Dense
 
 sequence_length = 4
 predict_column_name = "close"
@@ -100,30 +96,19 @@ def create_predictive_model(sequence_length, num_features):
 
 X, y, sequence_length, num_features, scaled_data, close_idx = load_and_preprocess_data(r'.\Data\coin.csv')
 
-
-
-
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-
-# model = Sequential([
-# Bidirectional(LSTM(50, input_shape=(sequence_length, num_features), return_sequences=True)),
-# Bidirectional(LSTM(50)),
-# Dense(25),
-# Dense(1)
-# ])
 
 model = create_predictive_model(sequence_length, num_features)
 print(model.summary())
 
-#model.compile(optimizer='adam', loss='mean_squared_error')
+
 model.fit(X_train, y_train, epochs=10, batch_size=256, validation_data=(X_test, y_test))
 
 
 
 # Predicting and reverse scaling
-last_sequence = X[-1].reshape(1, sequence_length, X.shape[2])
+last_sequence = X[-1].reshape(1, sequence_length, num_features)
 print("NEW LAST SEQUENCE:")
 print(last_sequence)
 print("NEW LAST SEQUENCE SHAPE:")
@@ -133,10 +118,7 @@ print("NEW LAST predicted_price:")
 print(predicted_price)
 print("NEW LAST predicted_price SHAPE:")
 print(predicted_price.shape) 
-# dummy_array = np.zeros((1, X.shape[2]))
-# dummy_array[0, -1] = predicted_price.reshape(-1, 1)  # Assuming the target is the last feature
-# dummy_array = np.zeros((1, num_features)) 
-# dummy_array[0, close_idx] = predicted_price
+
 predicted_price_reshaped = predicted_price.reshape(-1, 1)
 # Prepare a dummy array with the shape of the original feature set
 dummy_features = np.zeros((1, num_features))
