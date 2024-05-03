@@ -6,7 +6,10 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import Input, Conv1D, LSTM, Bidirectional, Dense, Dropout, Attention, Concatenate, LayerNormalization, Flatten
 from tensorflow.keras.layers import LSTM, Dense  # Import Bidirectional
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras import backend as K
 from sklearn.model_selection import train_test_split
+
 
 sequence_length = 4
 predict_column_name = "close"
@@ -92,22 +95,31 @@ def create_predictive_model(sequence_length, num_features):
     
     # Creating and compiling the model
     model = Model(inputs=input_layer, outputs=output_layer)
+
     model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
     
     return model
-
 
 X, y, sequence_length, num_features, scaled_data, close_idx = load_and_preprocess_data(r'.\Data\coin.csv')
 
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+
+
+# model = Sequential([
+# Bidirectional(LSTM(50, input_shape=(sequence_length, num_features), return_sequences=True)),
+# Bidirectional(LSTM(50)),
+# Dense(25),
+# Dense(1)
+# ])
+
 model = create_predictive_model(sequence_length, num_features)
 print(model.summary())
 
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-model.fit(X_train, y_train, epochs=100, batch_size=256, validation_data=(X_test, y_test))
-
+model.fit(X_train, y_train, epochs=100, batch_size=5, validation_data=(X_test, y_test), callbacks=[early_stopping])
 
 
 # Predicting and reverse scaling
