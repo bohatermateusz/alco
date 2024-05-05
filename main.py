@@ -101,7 +101,7 @@ def create_predictive_model(sequence_length, num_features):
     # Creating and compiling the model
     model = Model(inputs=input_layer, outputs=output_layer)
 
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+    
     
     return model
 
@@ -112,6 +112,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 
 
+
+
+model = create_predictive_model(sequence_length, num_features)
+
 # model = Sequential([
 # Bidirectional(LSTM(50, input_shape=(sequence_length, num_features), return_sequences=True)),
 # Bidirectional(LSTM(50)),
@@ -119,7 +123,8 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # Dense(1)
 # ])
 
-model = create_predictive_model(sequence_length, num_features)
+model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
+
 print(model.summary())
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
@@ -158,11 +163,11 @@ print(predicted_price_unscaled)
 
 # Extracting the specific predicted close price using the close_idx
 predicted_close_price = predicted_price_unscaled[0, close_idx]
-print("Predicted Close Price (Unscaled):", predicted_close_price)
+print("Predicted Close Price (Unscaled), final prediction:", predicted_close_price)
 
 # Print the predicted close price
-print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 0])
-print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 1])
-print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 2])
-print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 3])
-print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 4])
+print("Metadata (Unscaled):", predicted_price_unscaled[0, 0])
+print("Metadata (Unscaled):", predicted_price_unscaled[0, 1])
+print("Metadata (Unscaled):", predicted_price_unscaled[0, 2])
+print("Metadata (Unscaled):", predicted_price_unscaled[0, 3])
+print("Metadata (Unscaled):", predicted_price_unscaled[0, 4])
