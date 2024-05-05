@@ -124,7 +124,7 @@ print(model.summary())
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
-model.fit(X_train, y_train, epochs=100, batch_size=256, validation_data=(X_test, y_test), callbacks=[early_stopping])
+model.fit(X_train, y_train, epochs=100, batch_size=1, validation_data=(X_test, y_test), callbacks=[early_stopping])
 
 
 # Predicting and reverse scaling
@@ -152,8 +152,16 @@ print(dummy_features.shape)
 
 predicted_price_unscaled = scaler.inverse_transform(dummy_features)
 
-# predicted_price_unscaled = scaler.inverse_transform(dummy_array)[0, -1]
+#predicted_price_unscaled = scaler.inverse_transform(dummy_features)[0, -1]
 print("NEW LAST predicted_price_unscaled:")
 print(predicted_price_unscaled)
 
+# Extracting the specific predicted close price using the close_idx
+predicted_close_price = predicted_price_unscaled[0, close_idx]
 
+# Print the predicted close price
+print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 0])
+print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 1])
+print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 2])
+print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 3])
+print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 4])
