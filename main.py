@@ -158,6 +158,7 @@ print(predicted_price_unscaled)
 
 # Extracting the specific predicted close price using the close_idx
 predicted_close_price = predicted_price_unscaled[0, close_idx]
+print("Predicted Close Price (Unscaled):", predicted_close_price)
 
 # Print the predicted close price
 print("Predicted Close Price (Unscaled):", predicted_price_unscaled[0, 0])
