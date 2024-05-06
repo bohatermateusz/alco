@@ -114,14 +114,14 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 
 
-model = create_predictive_model(sequence_length, num_features)
+#model = create_predictive_model(sequence_length, num_features)
 
-# model = Sequential([
-# Bidirectional(LSTM(50, input_shape=(sequence_length, num_features), return_sequences=True)),
-# Bidirectional(LSTM(50)),
-# Dense(25),
-# Dense(1)
-# ])
+model = Sequential([
+    Bidirectional(LSTM(50, return_sequences=True), input_shape=(sequence_length, num_features)),
+    Bidirectional(LSTM(50)),
+    Dense(25, activation='relu'),
+    Dense(1, activation='linear')
+])
 
 model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mae'])
 
