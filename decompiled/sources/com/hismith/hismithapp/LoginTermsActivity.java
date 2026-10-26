@@ -1,0 +1,171 @@
+package com.hismith.hismithapp;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.http.SslError;
+import android.os.Bundle;
+import android.view.View;
+import android.webkit.JsResult;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import androidx.activity.OnBackPressedCallback;
+import com.hismith.hismithapp.utils.Constans;
+import com.hismith.hismithapp.utils.LanguageUtil;
+import com.hismith.hismithapp.utils.LogUtil;
+import com.hismith.hismithapp.utils.SharedPreferencesUtil;
+import com.hismith.hismithapp.view.CustomWebView;
+
+/* loaded from: classes3.dex */
+public class LoginTermsActivity extends BaseActivity implements View.OnClickListener {
+    private ImageView mTitleImgBack;
+    private ProgressBar mTitleProgress;
+    private TextView mTitleTxtName;
+    private TextView mTxtAgree;
+    private TextView mTxtDisagree;
+    private CustomWebView mWebView;
+    private String token = "";
+
+    class GameWebViewClient extends WebViewClient {
+        GameWebViewClient() {
+        }
+
+        @Override // android.webkit.WebViewClient
+        public void onPageFinished(WebView webView, String str) {
+        }
+
+        @Override // android.webkit.WebViewClient
+        public void onPageStarted(WebView webView, String str, Bitmap bitmap) {
+        }
+
+        @Override // android.webkit.WebViewClient
+        public boolean shouldOverrideUrlLoading(WebView webView, String str) {
+            LogUtil.e("shouldOverrideUrlLoading url:" + str);
+            webView.loadUrl(str);
+            return true;
+        }
+    }
+
+    private void init() {
+        if (getIntent() != null) {
+            this.token = getIntent().getStringExtra(Constans.Token);
+        }
+        initWebView();
+    }
+
+    private void initView() {
+        this.mTitleImgBack = (ImageView) findViewById(R.id.title_img_back);
+        this.mTitleTxtName = (TextView) findViewById(R.id.title_txt_name);
+        this.mTitleProgress = (ProgressBar) findViewById(R.id.title_progress);
+        this.mWebView = (CustomWebView) findViewById(R.id.userTerms_webView);
+        this.mTxtAgree = (TextView) findViewById(R.id.userTerms_txt_agree);
+        this.mTxtDisagree = (TextView) findViewById(R.id.userTerms_txt_disagree);
+        LanguageUtil.setText(this, this.mTitleTxtName, "userTerms");
+        LanguageUtil.setText(this, this.mTxtAgree, "userTermsAgree");
+        LanguageUtil.setText(this, this.mTxtDisagree, "userTermsDisagree");
+    }
+
+    private void initWebView() {
+        this.mWebView.getSettings().setCacheMode(1);
+        this.mWebView.setBackgroundColor(0);
+        this.mWebView.setWebChromeClient(new WebChromeClient() { // from class: com.hismith.hismithapp.LoginTermsActivity.2
+            @Override // android.webkit.WebChromeClient
+            public boolean onJsAlert(WebView webView, String str, String str2, JsResult jsResult) {
+                return super.onJsAlert(webView, str, str2, jsResult);
+            }
+
+            @Override // android.webkit.WebChromeClient
+            public void onProgressChanged(WebView webView, int i) {
+                super.onProgressChanged(webView, i);
+                LoginTermsActivity.this.mTitleProgress.setProgress(i);
+                if (i < 100) {
+                    LoginTermsActivity.this.mTitleProgress.setVisibility(0);
+                } else if (i == 100) {
+                    LoginTermsActivity.this.mTitleProgress.setVisibility(8);
+                }
+            }
+        });
+        this.mWebView.setWebViewClient(new GameWebViewClient());
+        this.mWebView.getSettings().setJavaScriptEnabled(true);
+        String str = "https://www.hismiths.com/cms/user-terms?app&language=" + LanguageUtil.getCurrLanguage(this);
+        LogUtil.e("webView uri:" + str);
+        this.mWebView.loadUrl(str);
+    }
+
+    private void receivedSslErrorDialog(WebView webView, final SslErrorHandler sslErrorHandler, SslError sslError) {
+        String languageByKey = LanguageUtil.getLanguageByKey(this, "sslVerificationFailed");
+        String languageByKey2 = LanguageUtil.getLanguageByKey(this, "buttomProceed");
+        String languageByKey3 = LanguageUtil.getLanguageByKey(this, "cancel");
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(languageByKey);
+        builder.setPositiveButton(languageByKey2, new DialogInterface.OnClickListener() { // from class: com.hismith.hismithapp.LoginTermsActivity.3
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                sslErrorHandler.proceed();
+            }
+        });
+        builder.setNegativeButton(languageByKey3, new DialogInterface.OnClickListener() { // from class: com.hismith.hismithapp.LoginTermsActivity.4
+            @Override // android.content.DialogInterface.OnClickListener
+            public void onClick(DialogInterface dialogInterface, int i) {
+                sslErrorHandler.cancel();
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() { // from class: com.hismith.hismithapp.LoginTermsActivity.5
+            @Override // android.content.DialogInterface.OnCancelListener
+            public void onCancel(DialogInterface dialogInterface) {
+                sslErrorHandler.cancel();
+            }
+        });
+        builder.create().show();
+    }
+
+    private void setListener() {
+        this.mTitleImgBack.setOnClickListener(this);
+        this.mTxtAgree.setOnClickListener(this);
+        this.mTxtDisagree.setOnClickListener(this);
+    }
+
+    @Override // android.view.View.OnClickListener
+    public void onClick(View view) {
+        int id = view.getId();
+        if (id == R.id.title_img_back || id == R.id.userTerms_txt_disagree) {
+            finish();
+            return;
+        }
+        if (id == R.id.userTerms_txt_agree) {
+            if (getIntent() != null) {
+                SharedPreferencesUtil.put(this, Constans.Token, this.token);
+                SharedPreferencesUtil.put(this, "email", getIntent().getStringExtra("email"));
+            }
+            startActivity(new Intent(this, (Class<?>) MainActivity.class));
+            this.appManager.finishAllOtherActivity(MainActivity.class);
+        }
+    }
+
+    @Override // com.hismith.hismithapp.BaseActivity, androidx.fragment.app.FragmentActivity, androidx.activity.ComponentActivity, androidx.core.app.ComponentActivity, android.app.Activity
+    protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) { // from class: com.hismith.hismithapp.LoginTermsActivity.1
+            @Override // androidx.activity.OnBackPressedCallback
+            public void handleOnBackPressed() {
+                boolean canGoBack = LoginTermsActivity.this.mWebView.canGoBack();
+                LoginTermsActivity loginTermsActivity = LoginTermsActivity.this;
+                if (canGoBack) {
+                    loginTermsActivity.mWebView.goBack();
+                } else {
+                    loginTermsActivity.finish();
+                }
+            }
+        });
+        setContentView(R.layout.activity_login_terms);
+        initView();
+        init();
+        setListener();
+    }
+}
